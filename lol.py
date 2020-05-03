@@ -1,12 +1,12 @@
 # Import all the libs
 import numpy as np
 import cv2
+
 from sklearn.model_selection import train_test_split  ### import sklearn tool
 
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.layers import Dense, LSTM, Input, TimeDistributed, Flatten, Conv2D, MaxPooling2D
-from keras.utils import plot_model
-import random
+
 
 num_of_videos = 10
 
@@ -99,43 +99,40 @@ lp = LSTM(128, return_sequences=False)(op)
 op2 = Dense(5, activation='softmax')(lp)
 
 model = Model(inputs=[cnn_input], outputs=op2)
-#######
-# row_hidden = 128
-# col_hidden = 128
-# epochs = 5
-#
-# visible = Input(shape=(9, 720 * 1280 * 3))
-#
-# layer1 = LSTM(row_hidden)(visible)
-# layer2 = Dense(col_hidden)(layer1)
-# layer3 = Dense(100)(layer2)
-# prediction = Dense(5, activation='softmax')(layer3)
-#
-# model = Model(visible, prediction)
-########
+
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer='NAdam',
               metrics=['accuracy'])
 
-# SVG(model_to_dot(model).create(prog='dot', format='svg'))
-#
-# np.random.seed(18247)
-#
 
 model.summary()
 
-for i in range(len(x_train)):
-    j = random.randrange(0, len(x_test))
-    model.fit(x_train[i], y_train[i],
-              batch_size=5,
-              epochs=3,
-              validation_data=(x_test[j], y_test[j]))
-
+# for i in range(len(x_train)):
+#     j = random.randrange(0, len(x_test))
+#     model.fit(x_train[i], y_train[i],
+#               batch_size=5,
+#               epochs=1,
+#               validation_data=(x_test[j], y_test[j]))
+#
 
 #
-scores = model.evaluate(x_test[-1], y_test[-1], verbose=0)
-print('Test loss:', scores[0])
-print('Test accuracy:', scores[1])
-#
-model.save("model.h5")
-print("Saved model to disk")
+# scores = model.evaluate(x_test[-1], y_test[-1], verbose=0)
+# print('Test loss:', scores[0])
+# print('Test accuracy:', scores[1])
+# #
+# model.save("model.h5")
+# print("Saved model to disk")
+
+# Import model here
+
+
+
+# load model from single file
+model = load_model('model.h5')
+# make predictions
+yhat = model.predict(x_train[1], verbose=0)
+print(yhat)
+lol = model.evaluate(x_train[1], y_train[1], batch_size=5)
+print(lol)
+
+
