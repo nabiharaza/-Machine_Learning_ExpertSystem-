@@ -3,8 +3,12 @@ import numpy as np
 import cv2
 from sklearn.model_selection import train_test_split  ### import sklearn tool
 
-from keras.models import  Model
+from keras.models import Model
 from keras.layers import Dense, LSTM, Input, TimeDistributed, Flatten, Conv2D, MaxPooling2D
+from keras.utils import plot_model
+import random
+
+num_of_videos = 10
 
 
 def load_dataset(path_to_video, total_frames):
@@ -29,7 +33,7 @@ def read_videos():
     all_frames = []
     f = open("Annotations.txt", "r")
     lines = f.readlines()
-    for line in lines[1:5]:
+    for line in lines[0:1 + num_of_videos]:
         video_name = line[0:6]
         y_labels = line[10:156].split(',')
         y_labels = [int(i[1]) for i in y_labels]
@@ -64,55 +68,51 @@ def read_videos():
 
 all_frames, labels = read_videos()
 
-labels = [
-    [4, 3, 2, 1, 0],
-    [4, 3, 2, 1, 0],
-    [4, 3, 2, 1, 0],
-    [4, 3, 2, 1, 0],
-]
+labels = [[j for j in range(4, -1, -1)] for i in range(num_of_videos, 0, -1)]
 # all_frames = np.reshape(all_frames, (196, -1))
 # all_frames = np.reshape(all_frames, ( 196, 2764800, 0))
 
 print("Shape of labels", np.shape(labels))
 print("Shape of all frames", np.shape(all_frames))
 # Split into train and test data
-x_train, x_test, y_train, y_test = train_test_split(all_frames, labels, test_size=0.5, random_state=0)
+x_train, x_test, y_train, y_test = train_test_split(all_frames, labels, test_size=0.3, random_state=0)
 x_train = np.asarray(x_train)
 x_test = np.asarray(x_test)
 
-x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], x_train.shape[2], -1))
-x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], x_test.shape[2], -1))
+# x_train = np.reshape(x_train, (x_train.shape[0], x_train.shape[1], x_train.shape[2], -1))
+# x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], x_test.shape[2], -1))
+
 print(np.shape(x_train), np.shape(y_train))
+print(np.shape(x_test), np.shape(y_test))
 
-row_hidden = 128
-col_hidden = 128
+print(len(x_test))
 
-batch_size = 2
-num_classes = 45
-epochs = 5
+cnn_input = Input(shape=(9, 720, 1280, 3))
+conv1 = TimeDistributed(Conv2D(32, kernel_size=(50, 5), activation='relu'))(cnn_input)
 
-# cnn_input = Input(shape=(9, 720, 1280, 3))
-# conv1 = TimeDistributed(Conv2D(32, kernel_size=(50, 5), activation='relu'))(cnn_input)
-#
-# pool1 = TimeDistributed(MaxPooling2D(pool_size=(4, 4)))(conv1)
-# flat = TimeDistributed(Flatten())(pool1)
-#
-# lstm = LSTM(128, return_sequences=True, activation='tanh')(flat)
-# op = TimeDistributed(Dense(100))(lstm)
-# lp = LSTM(128, return_sequences=False)(op)
-# op2 = Dense(5, activation='softmax')(lp)
-#
-# model = Model(inputs=[cnn_input], outputs=op2)
+pool1 = TimeDistributed(MaxPooling2D(pool_size=(4, 4)))(conv1)
+flat = TimeDistributed(Flatten())(pool1)
+
+lstm = LSTM(128, return_sequences=True, activation='tanh')(flat)
+op = TimeDistributed(Dense(100))(lstm)
+lp = LSTM(128, return_sequences=False)(op)
+op2 = Dense(5, activation='softmax')(lp)
+
+model = Model(inputs=[cnn_input], outputs=op2)
 #######
-visible = Input(shape=(9, 720 * 1280 * 3))
-
-layer1 = LSTM(row_hidden)(visible)
-layer2 = Dense(col_hidden)(layer1)
-layer3 = Dense(100)(layer2)
-prediction = Dense(5, activation='softmax')(layer3)
-
-
-model = Model(visible, prediction)
+# row_hidden = 128
+# col_hidden = 128
+# epochs = 5
+#
+# visible = Input(shape=(9, 720 * 1280 * 3))
+#
+# layer1 = LSTM(row_hidden)(visible)
+# layer2 = Dense(col_hidden)(layer1)
+# layer3 = Dense(100)(layer2)
+# prediction = Dense(5, activation='softmax')(layer3)
+#
+# model = Model(visible, prediction)
+########
 model.compile(loss='sparse_categorical_crossentropy',
               optimizer='NAdam',
               metrics=['accuracy'])
@@ -121,13 +121,19 @@ model.compile(loss='sparse_categorical_crossentropy',
 #
 # np.random.seed(18247)
 #
+
+model.summary()
+
 for i in range(len(x_train)):
+    j = random.randrange(0, len(x_test))
     model.fit(x_train[i], y_train[i],
               batch_size=5,
-              epochs=1,
-              validation_data=(x_test[i], y_test[i]))
+              epochs=3,
+              validation_data=(x_test[j], y_test[j]))
+
+
 #
-scores = model.evaluate(x_test[i], y_test[i], verbose=0)
+scores = model.evaluate(x_test[-1], y_test[-1], verbose=0)
 print('Test loss:', scores[0])
 print('Test accuracy:', scores[1])
 #
