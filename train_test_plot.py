@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from keras.models import Model, load_model
 from keras.layers import Dense, LSTM, Input, TimeDistributed, Flatten, Conv2D, MaxPooling2D
 
-num_of_videos = 10
+num_of_videos = 1500
 
 
 def load_dataset(path_to_video, total_frames):
@@ -112,7 +112,7 @@ for i in range(len(x_train)):
     j = random.randrange(0, len(x_test))
     model.fit(x_train[i], y_train[i],
               batch_size=5,
-              epochs=1,
+              epochs=29,
               validation_data=(x_test[j], y_test[j]))
 
 
