@@ -1,12 +1,14 @@
 # Import all the libs
+from random import random
+
 import numpy as np
+import matplotlib.pyplot as plt
 import cv2
 
-from sklearn.model_selection import train_test_split  ### import sklearn tool
+from sklearn.model_selection import train_test_split
 
 from keras.models import Model, load_model
 from keras.layers import Dense, LSTM, Input, TimeDistributed, Flatten, Conv2D, MaxPooling2D
-
 
 num_of_videos = 10
 
@@ -104,35 +106,47 @@ model.compile(loss='sparse_categorical_crossentropy',
               optimizer='NAdam',
               metrics=['accuracy'])
 
-
 model.summary()
 
-# for i in range(len(x_train)):
-#     j = random.randrange(0, len(x_test))
-#     model.fit(x_train[i], y_train[i],
-#               batch_size=5,
-#               epochs=1,
-#               validation_data=(x_test[j], y_test[j]))
+for i in range(len(x_train)):
+    j = random.randrange(0, len(x_test))
+    model.fit(x_train[i], y_train[i],
+              batch_size=5,
+              epochs=1,
+              validation_data=(x_test[j], y_test[j]))
+
+
+
+scores = model.evaluate(x_test[-1], y_test[-1], verbose=0)
+print('Test loss:', scores[0])
+print('Test accuracy:', scores[1])
 #
-
-#
-# scores = model.evaluate(x_test[-1], y_test[-1], verbose=0)
-# print('Test loss:', scores[0])
-# print('Test accuracy:', scores[1])
-# #
-# model.save("model.h5")
-# print("Saved model to disk")
-
-# Import model here
+model.save("model.h5")
+print("Saved model to disk")
 
 
-
-# load model from single file
+# Load model from file
 model = load_model('model.h5')
-# make predictions
-yhat = model.predict(x_train[1], verbose=0)
-print(yhat)
-lol = model.evaluate(x_train[1], y_train[1], batch_size=5)
-print(lol)
+# Make predictions
+y_pred = model.predict(x_train[1], verbose=0)
+print(y_pred)
+loss = model.evaluate(x_train[1], y_train[1], batch_size=5)
+print(loss)
 
 
+fpr = dict()
+tpr = dict()
+
+# Plot AUC/ROC Curve
+plt.figure()
+lw = 2
+plt.plot(fpr[2], tpr[2], color='green',
+         lw=lw, label='ROC curve (area = 0.72)')
+plt.plot([0, 1], [0, 1], color='red', lw=lw, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('Rate - False Positive ')
+plt.ylabel('Rate - Positive Rate')
+plt.title('Time to Accident frames')
+plt.legend(loc="lower right")
+plt.show()
