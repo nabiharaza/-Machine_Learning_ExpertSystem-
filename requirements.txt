@@ -60,7 +60,7 @@ macholib==1.5.1
 Markdown==3.1.1
 MarkupSafe==1.1.1
 matplotlib==3.1.1
-mistune==0.8.4
+mistune==2.0.3
 mock==3.0.5
 modulegraph==0.10.4
 more-itertools==8.1.0
