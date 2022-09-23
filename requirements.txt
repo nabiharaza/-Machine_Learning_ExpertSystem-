@@ -86,7 +86,7 @@ pluggy==0.13.1
 ply==3.11
 prometheus-client==0.7.1
 prompt-toolkit==1.0.16
-protobuf==3.8.0
+protobuf==3.18.3
 ptyprocess==0.6.0
 py==1.8.1
 py2app==0.7.3
